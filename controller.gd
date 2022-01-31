@@ -32,13 +32,15 @@ var colors = [Color.blue, Color.green]
 
 var trigger_time_change = false
 
-
 # onready var Player = $Player;
 onready var Players = [$Player0, $Player1]
 
 var groundeds = [false, false]
 var jumps = [0,0]
 var aims = [Vector2(1,0),Vector2(1,0)]
+var vels = [Vector2(), Vector2()]
+
+
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	#carrier = Players[0]
@@ -66,44 +68,68 @@ func get_player_index(player):
 	return 1
 	
 
+func ball_collision(delta):
+	var collision = Bomb.move_and_collide(bomb_vel * delta* movespeed*(1+ball_speed/5))
+	if collision != null: 
+		var col = collision.collider
+		if col.is_in_group("Monster"):
+			if ball_speed >= 4:
+				col.queue_free()
+			else:
+				col.push(bomb_vel * 300)
+				bomb_vel = bomb_vel.bounce(collision.normal).normalized()
+				ball_speed = max(0,ball_speed-1)
+		else:
+			bomb_vel = bomb_vel.bounce(collision.normal).normalized()
+			ball_speed = max(0,ball_speed-1)
+
+func move_player(i):
+	var movevec = Vector2();
+	var Player = Players[i]
+	var velocity = move_for_pl(i)
+	var aim = aim_for_pl(i)
+	
+	
+	if aim != Vector2():
+		aims[i] = aim.normalized()
+	
+	Player.get_node("aim").position = aims[i] * 20
+
+	if Engine.time_scale == 1:
+		movevec = velocity * movespeed
+	else:
+		movevec = velocity * movespeed * 1.5
+	
+	
+	if Input.is_action_just_pressed("shoot_" + str(i)):
+		var bods = Player.get_node("aim/AimArea").get_overlapping_bodies()
+		if Player != last_carrier and len(bods) == 2:
+			framefreeze(0.5)
+			ball_speed += 1
+			bomb_vel = aims[i]
+			last_carrier = Player
+	
+	vels[i] = vels[i].linear_interpolate(movevec, 0.3)
+	Player.move_and_slide(vels[i]);
+	
+	var col = Player.get_last_slide_collision()
+	if col != null:
+		var c = col.collider
+		if c.is_in_group("Monster"):
+			var dir = (-c.position + Player.position).normalized()
+			vels[i] = vels[i].linear_interpolate(dir * 1000, 0.9)
+
+
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
-	
-	# delta = timescale * delta
-	#var Enemy = $Enemy
-	#var d1 = Enemy.position.distance_to(Players[0].position)
-	#var d2 = Enemy.position.distance_to(Players[1].position)
-	#var follow = Players[1]
-	#if d1 < d2:
-#		follow = Players[0]
-	
-#	var dir = (follow.position - Enemy.position).normalized()
-#	Enemy.move_and_slide(dir * movespeed / 2)
-		
 	
 	if carrier == null:
 		var color = colors[(get_player_index(last_carrier) + 1) % 2]
 		Bomb.get_node("Sprite").modulate = color
-		
-		
-		
-		
+		ball_collision(delta)
 		#bomb_vel.y += grav * delta * 20
 		#Bomb.position += bomb_vel * delta
-		var collision = Bomb.move_and_collide(bomb_vel * delta* movespeed*(1+ball_speed/5))
-		if collision != null: 
-			var col = collision.collider
-			if col.is_in_group("Monster"):
-				if ball_speed >= 4:
-					col.queue_free()
-				else:
-					print("hit monster")
-					col.push(bomb_vel * 300)
-					bomb_vel = bomb_vel.bounce(collision.normal).normalized()
-					ball_speed = max(0,ball_speed-1)
-			else:
-				bomb_vel = bomb_vel.bounce(collision.normal).normalized()
-				ball_speed = max(0,ball_speed-1)
+		
 			
 	$Label.text = str(ball_speed)
 	#Bomb.shape
@@ -133,64 +159,7 @@ func _process(delta):
 
 	#Engine.time_scale = 1
 	for i in range(2):
-		var movevec = Vector2();
-		var Player = Players[i]
-		var velocity = move_for_pl(i)
-		var aim = aim_for_pl(i)
+		move_player(i)
 		
-		if aim != Vector2():
-			aims[i] = aim.normalized()
-		
-		Player.get_node("aim").position = aims[i] * 20
-		#if Player == carrier:
-		#	Bomb.position = carrier.position + velocity.normalized() * 20*2
-		
-		
-		
-		if Engine.time_scale == 1:
-			movevec = velocity * movespeed
-		else:
-			movevec = velocity * movespeed * 1.5
-		
-		
-		if Input.is_action_just_pressed("shoot_" + str(i)):
-			var bods = Player.get_node("aim/AimArea").get_overlapping_bodies()
-			if Player != last_carrier and len(bods) == 2:
-				framefreeze(0.5)
-				ball_speed += 1
-				bomb_vel = aims[i]
-				last_carrier = Player
-				# carrier = Player
-				#Engine.time_scale = 1
-				
-
-		# if Input.is_action_just_pressed("jump_" + str(i)):
-			
-#				vy[i] = 0
-			#elif jumps[i] > 0:
-			#	vy[i] = -jump;
-			#	jumps[i] -= 1;
-			
-			
-			# JUmp out from wall 
-
-		#if !groundeds[i] and carrier != Player:
-		#	vy[i] += grav * delta * 50;
-		
-		
-		Player.move_and_slide(movevec);
-		#if Player != carrier:
-			#movevec.y += vy[i];
-		
-	#	var arms = Player.get_node("Arms").get_overlapping_bodies();
-	#	for o in arms:	
-	#		var toonwall = false;
-	#
-	#		if o.is_in_group("Solid"):
-	#			toonwall = true;
-	#			vy = 100;
-	#			grounded = false;
-	#			jumps = 1;
-	#		onwall = toonwall;
 
 
