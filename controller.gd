@@ -86,8 +86,6 @@ func _process(delta):
 		Bomb.get_node("Sprite").modulate = color
 		
 		
-		
-		
 		#bomb_vel.y += grav * delta * 20
 		#Bomb.position += bomb_vel * delta
 		var collision = Bomb.move_and_collide(bomb_vel * delta* movespeed*(1+ball_speed/5))
@@ -123,8 +121,7 @@ func _process(delta):
 	if trigger_time_change:
 		if PlayerToHit.position.distance_to(Bomb.position) < 200:
 			Engine.time_scale = slomo
-		else:
-			trigger_time_change = false
+		elif Engine.time_scale == slomo:
 			Engine.time_scale = 1
 		
 
@@ -153,12 +150,12 @@ func _process(delta):
 		if Input.is_action_just_pressed("shoot_" + str(i)):
 			var bods = Player.get_node("aim/AimArea").get_overlapping_bodies()
 			if Player != last_carrier and len(bods) == 2:
+				Engine.time_scale = 1
 				framefreeze(0.5)
 				ball_speed += 1
 				bomb_vel = aims[i]
 				last_carrier = Player
 				# carrier = Player
-				#Engine.time_scale = 1
 				
 
 		# if Input.is_action_just_pressed("jump_" + str(i)):
