@@ -152,8 +152,7 @@ func _process(delta):
 	if trigger_time_change:
 		if PlayerToHit.position.distance_to(Bomb.position) < 200:
 			Engine.time_scale = slomo
-		else:
-			trigger_time_change = false
+		elif Engine.time_scale == slomo:
 			Engine.time_scale = 1
 		
 
