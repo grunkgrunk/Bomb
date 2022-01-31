@@ -70,15 +70,15 @@ func get_player_index(player):
 func _process(delta):
 	
 	# delta = timescale * delta
-	var Enemy = $Enemy
-	var d1 = Enemy.position.distance_to(Players[0].position)
-	var d2 = Enemy.position.distance_to(Players[1].position)
-	var follow = Players[1]
-	if d1 < d2:
-		follow = Players[0]
+	#var Enemy = $Enemy
+	#var d1 = Enemy.position.distance_to(Players[0].position)
+	#var d2 = Enemy.position.distance_to(Players[1].position)
+	#var follow = Players[1]
+	#if d1 < d2:
+#		follow = Players[0]
 	
-	var dir = (follow.position - Enemy.position).normalized()
-	Enemy.move_and_slide(dir * movespeed / 2)
+#	var dir = (follow.position - Enemy.position).normalized()
+#	Enemy.move_and_slide(dir * movespeed / 2)
 		
 	
 	if carrier == null:
@@ -90,10 +90,13 @@ func _process(delta):
 		#Bomb.position += bomb_vel * delta
 		var collision = Bomb.move_and_collide(bomb_vel * delta* movespeed*(1+ball_speed/5))
 		if collision != null: 
-			if collision.collider.is_in_group("Monster"):
+			var col = collision.collider
+			if col.is_in_group("Monster"):
 				if ball_speed >= 4:
-					collision.collider.queue_free()
+					col.queue_free()
 				else:
+					print("hit monster")
+					col.push(bomb_vel * 300)
 					bomb_vel = bomb_vel.bounce(collision.normal).normalized()
 					ball_speed = max(0,ball_speed-1)
 			else:

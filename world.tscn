@@ -483,6 +483,10 @@ texture = ExtResource( 1 )
 
 [node name="Enemy" type="KinematicBody2D" parent="PossibleLevels/lvl3" groups=["Monster"]]
 position = Vector2( 1857, 224 )
+[node name="Bomb" type="KinematicBody2D" parent="." groups=["Ball"]]
+position = Vector2( 175, 482 )
+collision_layer = 4
+collision_mask = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/lvl3/Enemy"]
 shape = SubResource( 3 )
