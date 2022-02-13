@@ -1,21 +1,85 @@
-[gd_scene load_steps=8 format=2]
+[gd_scene load_steps=17 format=2]
 
-[ext_resource path="res://icon.png" type="Texture" id=1]
-[ext_resource path="res://controller.gd" type="Script" id=2]
+[ext_resource path="res://Ball.tscn" type="PackedScene" id=1]
+[ext_resource path="res://world.gd" type="Script" id=2]
 [ext_resource path="res://Player.tscn" type="PackedScene" id=3]
-[ext_resource path="res://Black.png" type="Texture" id=4]
+[ext_resource path="res://white.png" type="Texture" id=4]
+[ext_resource path="res://Enemy.tscn" type="PackedScene" id=5]
+[ext_resource path="res://middle.gd" type="Script" id=6]
+[ext_resource path="res://camera.gd" type="Script" id=7]
+[ext_resource path="res://spil.wav" type="AudioStream" id=8]
+[ext_resource path="res://cam.gd" type="Script" id=9]
+[ext_resource path="res://newfont.tres" type="DynamicFont" id=10]
+[ext_resource path="res://Shop.tscn" type="PackedScene" id=11]
 
-[sub_resource type="CircleShape2D" id=2]
-radius = 19.0
+[sub_resource type="Shader" id=3]
+code = "shader_type canvas_item;
+
+uniform int pixelSize = 40;
+
+void fragment()
+{
+	
+	ivec2 size = textureSize(TEXTURE, 0);
+	
+	int xRes = size.x;
+	int yRes = size.y;
+	
+	float xFactor = float(xRes) / float(pixelSize);
+	float yFactor = float(yRes) / float(pixelSize);
+	
+	float grid_uv_x = round(UV.x * xFactor) / xFactor;
+	float grid_uv_y = round(UV.y * yFactor) / yFactor;
+	
+	vec4 text = texture(TEXTURE, vec2(grid_uv_x, grid_uv_y));
+	
+	COLOR = text;
+}"
+
+[sub_resource type="ShaderMaterial" id=4]
+shader = SubResource( 3 )
+shader_param/pixelSize = 40
+
+[sub_resource type="Shader" id=5]
+code = "shader_type canvas_item;
+
+uniform int pixelSize = 4;
+
+void fragment()
+{
+	
+	ivec2 size = textureSize(TEXTURE, 0);
+	
+	int xRes = size.x;
+	int yRes = size.y;
+	
+	float xFactor = float(xRes) / float(pixelSize);
+	float yFactor = float(yRes) / float(pixelSize);
+	
+	float grid_uv_x = round(UV.x * xFactor) / xFactor;
+	float grid_uv_y = round(UV.y * yFactor) / yFactor;
+	
+	vec4 text = texture(TEXTURE, vec2(grid_uv_x, grid_uv_y));
+	
+	COLOR = text;
+}"
+
+[sub_resource type="ShaderMaterial" id=6]
+shader = SubResource( 5 )
+shader_param/pixelSize = 40
 
 [sub_resource type="RectangleShape2D" id=1]
 extents = Vector2( 499, 16 )
 
-[sub_resource type="CircleShape2D" id=3]
-radius = 40.0
-
 [node name="world" type="Node2D"]
+material = SubResource( 4 )
 script = ExtResource( 2 )
+
+[node name="Polygon2D" type="Polygon2D" parent="." groups=["Color1"]]
+polygon = PoolVector2Array( 1152, 64, 1344, 0, 1408, 64, 1536, 0, 1792, 0, 1856, 64, 1920, 64, 2048, 128, 1920, 256, 1920, 448, 1984, 704, 1920, 768, 1984, 960, 1856, 1152, 1920, 1216, 1728, 1280, 1600, 1152, 1344, 1216, 1280, 1152, 640, 1280, 512, 1152, 320, 1216, 320, 1152, 256, 1088, 128, 1088, 64, 1024, 0, 960, 64, 896, 0, 832, 64, 704, 0, 640, 64, 512, -64, 448, 64, 0, 192, 64, 384, 0, 576, 64, 640, 128, 832, 64, 960, 0, 1088, 128 )
+
+[node name="CanvasModulate" type="CanvasModulate" parent="."]
+material = SubResource( 6 )
 
 [node name="Player0" parent="." instance=ExtResource( 3 )]
 position = Vector2( 88, 111 )
@@ -24,31 +88,37 @@ collision_mask = 2
 [node name="Player1" parent="." instance=ExtResource( 3 )]
 position = Vector2( 90, 250 )
 collision_mask = 2
+index = 1
 
-[node name="Bomb" type="KinematicBody2D" parent="."]
-position = Vector2( 348, 197 )
-collision_mask = 2
+[node name="Ball" parent="." instance=ExtResource( 1 )]
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Bomb"]
-shape = SubResource( 2 )
+[node name="Node2D" type="Node2D" parent="."]
+position = Vector2( 993, 600 )
+rotation = 0.10472
+script = ExtResource( 7 )
 
-[node name="Sprite" type="Sprite" parent="Bomb"]
-modulate = Color( 0, 1, 0.0156863, 1 )
-position = Vector2( 1, 1 )
-scale = Vector2( 0.515625, 0.515625 )
-texture = ExtResource( 1 )
-
-[node name="Camera2D" type="Camera2D" parent="."]
-anchor_mode = 0
+[node name="Camera2D" type="Camera2D" parent="Node2D" groups=["Camera"]]
+rotating = true
 current = true
 zoom = Vector2( 2, 2 )
+script = ExtResource( 9 )
 
-[node name="Label" type="Label" parent="."]
-margin_left = 900.0
+[node name="Label" type="Label" parent="." groups=["Color2"]]
+margin_left = 768.0
 margin_top = 64.0
-margin_right = 1258.0
+margin_right = 1126.0
 margin_bottom = 194.0
-rect_scale = Vector2( 10, 10 )
+custom_fonts/font = ExtResource( 10 )
+text = "TEST"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="healthlabel" type="Label" parent="." groups=["Color1"]]
+margin_top = 1048.0
+margin_right = 283.0
+margin_bottom = 1223.0
+custom_fonts/font = ExtResource( 10 )
 text = "TEST"
 __meta__ = {
 "_edit_use_anchors_": false
@@ -61,820 +131,169 @@ __meta__ = {
 [node name="StaticBody2D9" type="StaticBody2D" parent="PossibleLevels/Base" groups=["Solid"]]
 position = Vector2( 9, 1184 )
 scale = Vector2( 2.14929, 1.02614 )
+collision_layer = 8
+collision_mask = 15
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/Base/StaticBody2D9"]
 position = Vector2( 469, 14 )
 shape = SubResource( 1 )
 
-[node name="Sprite" type="Sprite" parent="PossibleLevels/Base/StaticBody2D9"]
+[node name="Sprite" type="Sprite" parent="PossibleLevels/Base/StaticBody2D9" groups=["Color2"]]
+visible = false
+modulate = Color( 1, 0.905882, 0.141176, 1 )
 position = Vector2( 470, 13.5 )
 scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
-
-[node name="StaticBody2D2" type="StaticBody2D" parent="PossibleLevels/Base" groups=["Solid"]]
-position = Vector2( 45, 16 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/Base/StaticBody2D2"]
-position = Vector2( 469, 14 )
-shape = SubResource( 1 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/Base/StaticBody2D2"]
-position = Vector2( 470, 13.5 )
-scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
-
-[node name="StaticBody2D4" type="StaticBody2D" parent="PossibleLevels/Base" groups=["Solid"]]
-position = Vector2( 1017, 12 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/Base/StaticBody2D4"]
-position = Vector2( 469, 14 )
-shape = SubResource( 1 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/Base/StaticBody2D4"]
-position = Vector2( 470, 13.5 )
-scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
+texture = ExtResource( 4 )
 
 [node name="StaticBody2D10" type="StaticBody2D" parent="PossibleLevels/Base" groups=["Solid"]]
-position = Vector2( 1991, 1172 )
-scale = Vector2( 2.14929, 1.02614 )
+position = Vector2( 1027, 373 )
+rotation = -0.135713
+scale = Vector2( 0.600794, 1.41799 )
+collision_layer = 8
+collision_mask = 15
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/Base/StaticBody2D10"]
 position = Vector2( 469, 14 )
 shape = SubResource( 1 )
 
-[node name="Sprite" type="Sprite" parent="PossibleLevels/Base/StaticBody2D10"]
+[node name="Sprite" type="Sprite" parent="PossibleLevels/Base/StaticBody2D10" groups=["Color2"]]
+modulate = Color( 1, 0.905882, 0.141176, 1 )
 position = Vector2( 470, 13.5 )
+rotation = -0.00675655
 scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
+texture = ExtResource( 4 )
 
-[node name="StaticBody2D3" type="StaticBody2D" parent="PossibleLevels/Base" groups=["Solid"]]
-position = Vector2( 2027, 4 )
+[node name="StaticBody2D11" type="StaticBody2D" parent="PossibleLevels/Base" groups=["Solid"]]
+position = Vector2( 440, 796 )
+rotation = 0.20278
+scale = Vector2( 0.600794, 1.41799 )
+collision_layer = 8
+collision_mask = 15
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/Base/StaticBody2D3"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/Base/StaticBody2D11"]
 position = Vector2( 469, 14 )
 shape = SubResource( 1 )
 
-[node name="Sprite" type="Sprite" parent="PossibleLevels/Base/StaticBody2D3"]
+[node name="Sprite" type="Sprite" parent="PossibleLevels/Base/StaticBody2D11" groups=["Color2"]]
+modulate = Color( 1, 0.905882, 0.141176, 1 )
 position = Vector2( 470, 13.5 )
 scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
+texture = ExtResource( 4 )
 
-[node name="StaticBody2D5" type="StaticBody2D" parent="PossibleLevels/Base" groups=["Solid"]]
-position = Vector2( 2999, 0 )
+[node name="StaticBody2D2" type="StaticBody2D" parent="PossibleLevels/Base" groups=["Solid"]]
+position = Vector2( 45, 16 )
+collision_layer = 8
+collision_mask = 15
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/Base/StaticBody2D5"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/Base/StaticBody2D2"]
 position = Vector2( 469, 14 )
 shape = SubResource( 1 )
 
-[node name="Sprite" type="Sprite" parent="PossibleLevels/Base/StaticBody2D5"]
+[node name="Sprite" type="Sprite" parent="PossibleLevels/Base/StaticBody2D2" groups=["Color2"]]
+visible = false
+modulate = Color( 1, 0.905882, 0.141176, 1 )
 position = Vector2( 470, 13.5 )
 scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
+texture = ExtResource( 4 )
 
-[node name="StaticBody2D6" type="StaticBody2D" parent="PossibleLevels/Base" groups=["Solid"]]
-position = Vector2( 2061, 156 )
-rotation = 3.14159
-scale = Vector2( 0.0970733, -22.8381 )
+[node name="StaticBody2D4" type="StaticBody2D" parent="PossibleLevels/Base" groups=["Solid"]]
+position = Vector2( 1017, 12 )
+collision_layer = 8
+collision_mask = 15
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/Base/StaticBody2D6"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/Base/StaticBody2D4"]
 position = Vector2( 469, 14 )
 shape = SubResource( 1 )
 
-[node name="Sprite" type="Sprite" parent="PossibleLevels/Base/StaticBody2D6"]
-position = Vector2( 545.98, 12.3478 )
+[node name="Sprite" type="Sprite" parent="PossibleLevels/Base/StaticBody2D4" groups=["Color2"]]
+visible = false
+modulate = Color( 1, 0.905882, 0.141176, 1 )
+position = Vector2( 470, 13.5 )
 scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
+texture = ExtResource( 4 )
 
 [node name="StaticBody2D7" type="StaticBody2D" parent="PossibleLevels/Base" groups=["Solid"]]
-position = Vector2( 25.0002, 507 )
+position = Vector2( 15, 94 )
 rotation = 3.14159
-scale = Vector2( 0.0970733, -22.8381 )
+scale = Vector2( 0.103305, -48.2439 )
+collision_layer = 8
+collision_mask = 15
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/Base/StaticBody2D7"]
 position = Vector2( 469, 14 )
 shape = SubResource( 1 )
 
-[node name="Sprite" type="Sprite" parent="PossibleLevels/Base/StaticBody2D7"]
+[node name="Sprite" type="Sprite" parent="PossibleLevels/Base/StaticBody2D7" groups=["Color2"]]
+visible = false
+modulate = Color( 1, 0.905882, 0.141176, 1 )
 position = Vector2( 545.98, 12.3478 )
-scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
-
-[node name="Base2" type="Node2D" parent="PossibleLevels"]
-position = Vector2( 3950, -14 )
-
-[node name="StaticBody2D9" type="StaticBody2D" parent="PossibleLevels/Base2" groups=["Solid"]]
-position = Vector2( 9, 1184 )
-scale = Vector2( 2.14929, 1.02614 )
-collision_layer = 8
-collision_mask = 15
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/Base2/StaticBody2D9"]
-position = Vector2( 469, 14 )
-shape = SubResource( 1 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/Base2/StaticBody2D9"]
-position = Vector2( 470, 13.5 )
-scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
-
-[node name="StaticBody2D2" type="StaticBody2D" parent="PossibleLevels/Base2" groups=["Solid"]]
-position = Vector2( 45, 16 )
-collision_layer = 8
-collision_mask = 15
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/Base2/StaticBody2D2"]
-position = Vector2( 469, 14 )
-shape = SubResource( 1 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/Base2/StaticBody2D2"]
-position = Vector2( 470, 13.5 )
-scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
-
-[node name="StaticBody2D4" type="StaticBody2D" parent="PossibleLevels/Base2" groups=["Solid"]]
-position = Vector2( 1017, 12 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/Base2/StaticBody2D4"]
-position = Vector2( 469, 14 )
-shape = SubResource( 1 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/Base2/StaticBody2D4"]
-position = Vector2( 470, 13.5 )
-scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
-
-[node name="StaticBody2D10" type="StaticBody2D" parent="PossibleLevels/Base2" groups=["Solid"]]
-position = Vector2( 1991, 1172 )
-scale = Vector2( 2.14929, 1.02614 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/Base2/StaticBody2D10"]
-position = Vector2( 469, 14 )
-shape = SubResource( 1 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/Base2/StaticBody2D10"]
-position = Vector2( 470, 13.5 )
-scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
-
-[node name="StaticBody2D3" type="StaticBody2D" parent="PossibleLevels/Base2" groups=["Solid"]]
-position = Vector2( 2027, 4 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/Base2/StaticBody2D3"]
-position = Vector2( 469, 14 )
-shape = SubResource( 1 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/Base2/StaticBody2D3"]
-position = Vector2( 470, 13.5 )
-scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
-
-[node name="StaticBody2D5" type="StaticBody2D" parent="PossibleLevels/Base2" groups=["Solid"]]
-position = Vector2( 2999, 0 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/Base2/StaticBody2D5"]
-position = Vector2( 469, 14 )
-shape = SubResource( 1 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/Base2/StaticBody2D5"]
-position = Vector2( 470, 13.5 )
-scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
-
-[node name="StaticBody2D6" type="StaticBody2D" parent="PossibleLevels/Base2" groups=["Solid"]]
-position = Vector2( 2061, 156 )
-rotation = 3.14159
-scale = Vector2( 0.0970733, -22.8381 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/Base2/StaticBody2D6"]
-position = Vector2( 469, 14 )
-shape = SubResource( 1 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/Base2/StaticBody2D6"]
-position = Vector2( 545.98, 12.3478 )
-scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
-
-[node name="StaticBody2D7" type="StaticBody2D" parent="PossibleLevels/Base2" groups=["Solid"]]
-position = Vector2( 25.0002, 507 )
-rotation = 3.14159
-scale = Vector2( 0.0970733, -22.8381 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/Base2/StaticBody2D7"]
-position = Vector2( 469, 14 )
-shape = SubResource( 1 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/Base2/StaticBody2D7"]
-position = Vector2( 545.98, 12.3478 )
-scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
-
-[node name="Base3" type="Node2D" parent="PossibleLevels"]
-position = Vector2( 7846, -28 )
-
-[node name="StaticBody2D9" type="StaticBody2D" parent="PossibleLevels/Base3" groups=["Solid"]]
-position = Vector2( 9, 1184 )
-scale = Vector2( 2.14929, 1.02614 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/Base3/StaticBody2D9"]
-position = Vector2( 469, 14 )
-shape = SubResource( 1 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/Base3/StaticBody2D9"]
-position = Vector2( 470, 13.5 )
-scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
-
-[node name="StaticBody2D2" type="StaticBody2D" parent="PossibleLevels/Base3" groups=["Solid"]]
-position = Vector2( 45, 16 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/Base3/StaticBody2D2"]
-position = Vector2( 469, 14 )
-shape = SubResource( 1 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/Base3/StaticBody2D2"]
-position = Vector2( 470, 13.5 )
-scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
-
-[node name="StaticBody2D4" type="StaticBody2D" parent="PossibleLevels/Base3" groups=["Solid"]]
-position = Vector2( 1017, 12 )
-collision_layer = 8
-collision_mask = 15
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/Base3/StaticBody2D4"]
-position = Vector2( 469, 14 )
-shape = SubResource( 1 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/Base3/StaticBody2D4"]
-position = Vector2( 470, 13.5 )
-scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
-
-[node name="StaticBody2D10" type="StaticBody2D" parent="PossibleLevels/Base3" groups=["Solid"]]
-position = Vector2( 1991, 1172 )
-scale = Vector2( 2.14929, 1.02614 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/Base3/StaticBody2D10"]
-position = Vector2( 469, 14 )
-shape = SubResource( 1 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/Base3/StaticBody2D10"]
-position = Vector2( 470, 13.5 )
-scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
-
-[node name="StaticBody2D3" type="StaticBody2D" parent="PossibleLevels/Base3" groups=["Solid"]]
-position = Vector2( 2027, 4 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/Base3/StaticBody2D3"]
-position = Vector2( 469, 14 )
-shape = SubResource( 1 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/Base3/StaticBody2D3"]
-position = Vector2( 470, 13.5 )
-scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
-
-[node name="StaticBody2D5" type="StaticBody2D" parent="PossibleLevels/Base3" groups=["Solid"]]
-position = Vector2( 2999, 0 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/Base3/StaticBody2D5"]
-position = Vector2( 469, 14 )
-shape = SubResource( 1 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/Base3/StaticBody2D5"]
-position = Vector2( 470, 13.5 )
-scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
-
-[node name="StaticBody2D6" type="StaticBody2D" parent="PossibleLevels/Base3" groups=["Solid"]]
-position = Vector2( 2061, 156 )
-rotation = 3.14159
-scale = Vector2( 0.0970733, -22.8381 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/Base3/StaticBody2D6"]
-position = Vector2( 469, 14 )
-shape = SubResource( 1 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/Base3/StaticBody2D6"]
-position = Vector2( 545.98, 12.3478 )
-scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
-
-[node name="StaticBody2D8" type="StaticBody2D" parent="PossibleLevels/Base3" groups=["Solid"]]
-position = Vector2( 4074, 196 )
-rotation = 3.14159
-scale = Vector2( 0.0970733, -34.8781 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/Base3/StaticBody2D8"]
-position = Vector2( 469, 14 )
-shape = SubResource( 1 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/Base3/StaticBody2D8"]
-position = Vector2( 545.98, 12.3478 )
-scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
-
-[node name="StaticBody2D7" type="StaticBody2D" parent="PossibleLevels/Base3" groups=["Solid"]]
-position = Vector2( 25.0002, 507 )
-rotation = 3.14159
-scale = Vector2( 0.0970733, -22.8381 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/Base3/StaticBody2D7"]
-position = Vector2( 469, 14 )
-shape = SubResource( 1 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/Base3/StaticBody2D7"]
-position = Vector2( 545.98, 12.3478 )
-scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
-
-[node name="lvl3" type="Node2D" parent="PossibleLevels"]
-position = Vector2( 3916, 20 )
-
-[node name="StaticBody2D3" type="StaticBody2D" parent="PossibleLevels/lvl3" groups=["Solid"]]
-position = Vector2( 999, 584 )
-scale = Vector2( 0.8, 1 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/lvl3/StaticBody2D3"]
-position = Vector2( 469, 14 )
-shape = SubResource( 1 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/lvl3/StaticBody2D3"]
-position = Vector2( 470, 13.5 )
-scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
-
-[node name="StaticBody2D4" type="StaticBody2D" parent="PossibleLevels/lvl3" groups=["Solid"]]
-position = Vector2( 1237, 841 )
-scale = Vector2( 0.8, 1 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/lvl3/StaticBody2D4"]
-position = Vector2( 469, 14 )
-shape = SubResource( 1 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/lvl3/StaticBody2D4"]
-position = Vector2( 470, 13.5 )
-scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
-
-[node name="StaticBody2D5" type="StaticBody2D" parent="PossibleLevels/lvl3" groups=["Solid"]]
-position = Vector2( 1104, 342 )
-rotation = 3.14159
-scale = Vector2( 0.237113, -10.4286 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/lvl3/StaticBody2D5"]
-position = Vector2( 469, 14 )
-shape = SubResource( 1 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/lvl3/StaticBody2D5"]
-position = Vector2( 470, 13.5 )
-scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
-
-[node name="StaticBody2D10" type="StaticBody2D" parent="PossibleLevels/lvl3" groups=["Solid"]]
-position = Vector2( 1536, 1110 )
-rotation = 3.14159
-scale = Vector2( 0.237113, -10.4286 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/lvl3/StaticBody2D10"]
-position = Vector2( 469, 14 )
-shape = SubResource( 1 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/lvl3/StaticBody2D10"]
-position = Vector2( 470, 13.5 )
-scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
-
-[node name="StaticBody2D11" type="StaticBody2D" parent="PossibleLevels/lvl3" groups=["Solid"]]
-position = Vector2( 785, 993 )
-rotation = 3.14159
-scale = Vector2( 0.237113, -10.4286 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/lvl3/StaticBody2D11"]
-position = Vector2( 469, 14 )
-shape = SubResource( 1 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/lvl3/StaticBody2D11"]
-position = Vector2( 470, 13.5 )
-scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
-
-[node name="StaticBody2D7" type="StaticBody2D" parent="PossibleLevels/lvl3" groups=["Solid"]]
-position = Vector2( 1737, -84 )
-rotation = -3.14159
-scale = Vector2( 0.237113, -10.4286 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/lvl3/StaticBody2D7"]
-position = Vector2( 469, 14 )
-shape = SubResource( 1 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/lvl3/StaticBody2D7"]
-position = Vector2( 470, 13.5 )
-scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
-
-[node name="StaticBody2D" type="StaticBody2D" parent="PossibleLevels/lvl3" groups=["Solid"]]
-position = Vector2( 25, 576 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/lvl3/StaticBody2D"]
-position = Vector2( 469, 14 )
-shape = SubResource( 1 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/lvl3/StaticBody2D"]
-position = Vector2( 470, 13.5 )
-scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
-
-[node name="Enemy" type="KinematicBody2D" parent="PossibleLevels/lvl3" groups=["Monster"]]
-position = Vector2( 1857, 224 )
-[node name="Bomb" type="KinematicBody2D" parent="." groups=["Ball"]]
-position = Vector2( 175, 482 )
-collision_layer = 4
-collision_mask = 10
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/lvl3/Enemy"]
-shape = SubResource( 3 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/lvl3/Enemy"]
-modulate = Color( 1, 0, 0, 1 )
-texture = ExtResource( 1 )
-
-[node name="Enemy2" type="KinematicBody2D" parent="PossibleLevels/lvl3" groups=["Monster"]]
-position = Vector2( 244, 837 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/lvl3/Enemy2"]
-shape = SubResource( 3 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/lvl3/Enemy2"]
-modulate = Color( 1, 0, 0, 1 )
-texture = ExtResource( 1 )
-
-[node name="lvl2" type="Node2D" parent="PossibleLevels"]
-
-[node name="StaticBody2D2" type="StaticBody2D" parent="PossibleLevels/lvl2" groups=["Solid"]]
-position = Vector2( 2444, 753 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/lvl2/StaticBody2D2"]
-position = Vector2( 469, 14 )
-shape = SubResource( 1 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/lvl2/StaticBody2D2"]
-position = Vector2( 470, 13.5 )
-scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
-
-[node name="StaticBody2D3" type="StaticBody2D" parent="PossibleLevels/lvl2" groups=["Solid"]]
-position = Vector2( 2917, 359 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/lvl2/StaticBody2D3"]
-position = Vector2( 469, 14 )
-shape = SubResource( 1 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/lvl2/StaticBody2D3"]
-position = Vector2( 470, 13.5 )
-scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
-
-[node name="Enemy3" type="KinematicBody2D" parent="PossibleLevels/lvl2" groups=["Monster"]]
-position = Vector2( 2922, 581 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/lvl2/Enemy3"]
-shape = SubResource( 3 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/lvl2/Enemy3"]
-modulate = Color( 1, 0, 0, 1 )
-texture = ExtResource( 1 )
-
-[node name="lvl4" type="Node2D" parent="PossibleLevels"]
-
-[node name="StaticBody2D5" type="StaticBody2D" parent="PossibleLevels/lvl4" groups=["Solid"]]
-position = Vector2( 6461, 839 )
-rotation = 0.358787
-scale = Vector2( 1, 1 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/lvl4/StaticBody2D5"]
-position = Vector2( 469, 14 )
-shape = SubResource( 1 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/lvl4/StaticBody2D5"]
-position = Vector2( 470, 13.5 )
-scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
-
-[node name="StaticBody2D7" type="StaticBody2D" parent="PossibleLevels/lvl4" groups=["Solid"]]
-position = Vector2( 6461, 402 )
-rotation = 0.358787
-scale = Vector2( 1, 1 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/lvl4/StaticBody2D7"]
-position = Vector2( 469, 14 )
-shape = SubResource( 1 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/lvl4/StaticBody2D7"]
-position = Vector2( 470, 13.5 )
-scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
-
-[node name="StaticBody2D6" type="StaticBody2D" parent="PossibleLevels/lvl4" groups=["Solid"]]
-position = Vector2( 6640, 51.0001 )
-rotation = 0.358787
-scale = Vector2( 1, 1 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/lvl4/StaticBody2D6"]
-position = Vector2( 469, 14 )
-shape = SubResource( 1 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/lvl4/StaticBody2D6"]
-position = Vector2( 470, 13.5 )
-scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
-
-[node name="Enemy4" type="KinematicBody2D" parent="PossibleLevels/lvl4" groups=["Monster"]]
-position = Vector2( 6852, 830 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/lvl4/Enemy4"]
-shape = SubResource( 3 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/lvl4/Enemy4"]
-modulate = Color( 1, 0, 0, 1 )
-texture = ExtResource( 1 )
-
-[node name="Enemy5" type="KinematicBody2D" parent="PossibleLevels/lvl4" groups=["Monster"]]
-position = Vector2( 6953, 413 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/lvl4/Enemy5"]
-shape = SubResource( 3 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/lvl4/Enemy5"]
-modulate = Color( 1, 0, 0, 1 )
-texture = ExtResource( 1 )
-
-[node name="lvl5" type="Node2D" parent="PossibleLevels"]
-
-[node name="StaticBody2D6" type="StaticBody2D" parent="PossibleLevels/lvl5" groups=["Solid"]]
-position = Vector2( 8480, 297 )
-rotation = 3.14159
-scale = Vector2( 0.237113, -10.4286 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/lvl5/StaticBody2D6"]
-position = Vector2( 469, 14 )
-shape = SubResource( 1 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/lvl5/StaticBody2D6"]
-position = Vector2( 470, 13.5 )
-scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
-
-[node name="StaticBody2D7" type="StaticBody2D" parent="PossibleLevels/lvl5" groups=["Solid"]]
-position = Vector2( 9568, 605 )
-rotation = 3.14159
-scale = Vector2( 0.237113, -10.4286 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/lvl5/StaticBody2D7"]
-position = Vector2( 469, 14 )
-shape = SubResource( 1 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/lvl5/StaticBody2D7"]
-position = Vector2( 470, 13.5 )
-scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
-
-[node name="StaticBody2D8" type="StaticBody2D" parent="PossibleLevels/lvl5" groups=["Solid"]]
-position = Vector2( 9217, 39.0001 )
-rotation = 3.14159
-scale = Vector2( 0.237113, -10.4286 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/lvl5/StaticBody2D8"]
-position = Vector2( 469, 14 )
-shape = SubResource( 1 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/lvl5/StaticBody2D8"]
-position = Vector2( 470, 13.5 )
-scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
-
-[node name="StaticBody2D9" type="StaticBody2D" parent="PossibleLevels/lvl5" groups=["Solid"]]
-position = Vector2( 8973, 848 )
-rotation = 3.14159
-scale = Vector2( 0.237113, -10.4286 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/lvl5/StaticBody2D9"]
-position = Vector2( 469, 14 )
-shape = SubResource( 1 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/lvl5/StaticBody2D9"]
-position = Vector2( 470, 13.5 )
-scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
-
-[node name="Enemy6" type="KinematicBody2D" parent="PossibleLevels/lvl5" groups=["Monster"]]
-position = Vector2( 8783, 143 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/lvl5/Enemy6"]
-shape = SubResource( 3 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/lvl5/Enemy6"]
-modulate = Color( 1, 0, 0, 1 )
-texture = ExtResource( 1 )
-
-[node name="Enemy7" type="KinematicBody2D" parent="PossibleLevels/lvl5" groups=["Monster"]]
-position = Vector2( 8083, 1011 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/lvl5/Enemy7"]
-shape = SubResource( 3 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/lvl5/Enemy7"]
-modulate = Color( 1, 0, 0, 1 )
-texture = ExtResource( 1 )
-
-[node name="Enemy8" type="KinematicBody2D" parent="PossibleLevels/lvl5" groups=["Monster"]]
-position = Vector2( 8864, 567 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/lvl5/Enemy8"]
-shape = SubResource( 3 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/lvl5/Enemy8"]
-modulate = Color( 1, 0, 0, 1 )
-texture = ExtResource( 1 )
-
-[node name="Enemy9" type="KinematicBody2D" parent="PossibleLevels/lvl5" groups=["Monster"]]
-position = Vector2( 9645, 143 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/lvl5/Enemy9"]
-shape = SubResource( 3 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/lvl5/Enemy9"]
-modulate = Color( 1, 0, 0, 1 )
-texture = ExtResource( 1 )
-
-[node name="lvl6" type="Node2D" parent="PossibleLevels"]
-
-[node name="StaticBody2D6" type="StaticBody2D" parent="PossibleLevels/lvl6" groups=["Solid"]]
-position = Vector2( 10779, 731 )
-scale = Vector2( 0.8, 1 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/lvl6/StaticBody2D6"]
-position = Vector2( 469, 14 )
-shape = SubResource( 1 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/lvl6/StaticBody2D6"]
-position = Vector2( 470, 13.5 )
-scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
-
-[node name="StaticBody2D8" type="StaticBody2D" parent="PossibleLevels/lvl6" groups=["Solid"]]
-position = Vector2( 10218, 426 )
-scale = Vector2( 0.8, 1 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/lvl6/StaticBody2D8"]
-position = Vector2( 469, 14 )
-shape = SubResource( 1 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/lvl6/StaticBody2D8"]
-position = Vector2( 470, 13.5 )
-scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
-
-[node name="StaticBody2D9" type="StaticBody2D" parent="PossibleLevels/lvl6" groups=["Solid"]]
-position = Vector2( 10994, 494 )
-rotation = 3.14159
-scale = Vector2( 0.237113, -10.4286 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/lvl6/StaticBody2D9"]
-position = Vector2( 469, 14 )
-shape = SubResource( 1 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/lvl6/StaticBody2D9"]
-position = Vector2( 470, 13.5 )
-scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
-
-[node name="StaticBody2D12" type="StaticBody2D" parent="PossibleLevels/lvl6" groups=["Solid"]]
-position = Vector2( 11426, 1262 )
-rotation = 3.14159
-scale = Vector2( 0.237113, -10.4286 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/lvl6/StaticBody2D12"]
-position = Vector2( 469, 14 )
-shape = SubResource( 1 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/lvl6/StaticBody2D12"]
-position = Vector2( 470, 13.5 )
-scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
-
-[node name="StaticBody2D13" type="StaticBody2D" parent="PossibleLevels/lvl6" groups=["Solid"]]
-position = Vector2( 10675, 1145 )
-rotation = 3.14159
-scale = Vector2( 0.237113, -10.4286 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/lvl6/StaticBody2D13"]
-position = Vector2( 469, 14 )
-shape = SubResource( 1 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/lvl6/StaticBody2D13"]
-position = Vector2( 470, 13.5 )
 scale = Vector2( 15.6875, 0.578125 )
 texture = ExtResource( 4 )
 
-[node name="StaticBody2D14" type="StaticBody2D" parent="PossibleLevels/lvl6" groups=["Solid"]]
-position = Vector2( 11627, 68 )
+[node name="StaticBody2D8" type="StaticBody2D" parent="PossibleLevels/Base" groups=["Solid"]]
+position = Vector2( 2065, 84 )
 rotation = 3.14159
-scale = Vector2( 0.237113, -10.4286 )
+scale = Vector2( 0.103305, -48.2439 )
+collision_layer = 8
+collision_mask = 15
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/lvl6/StaticBody2D14"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/Base/StaticBody2D8"]
 position = Vector2( 469, 14 )
 shape = SubResource( 1 )
 
-[node name="Sprite" type="Sprite" parent="PossibleLevels/lvl6/StaticBody2D14"]
-position = Vector2( 470, 13.5 )
+[node name="Sprite" type="Sprite" parent="PossibleLevels/Base/StaticBody2D8" groups=["Color2"]]
+visible = false
+modulate = Color( 1, 0.905882, 0.141176, 1 )
+position = Vector2( 545.98, 12.3478 )
 scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
+texture = ExtResource( 4 )
 
-[node name="StaticBody2D2" type="StaticBody2D" parent="PossibleLevels/lvl6" groups=["Solid"]]
-position = Vector2( 9915, 728 )
+[node name="Enms" type="Node2D" parent="."]
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/lvl6/StaticBody2D2"]
-position = Vector2( 469, 14 )
-shape = SubResource( 1 )
+[node name="Enemy" parent="Enms" instance=ExtResource( 5 )]
+position = Vector2( 1092, 934 )
+collision_layer = 2
+collision_mask = 13
 
-[node name="Sprite" type="Sprite" parent="PossibleLevels/lvl6/StaticBody2D2"]
-position = Vector2( 470, 13.5 )
-scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
+[node name="Enemy2" parent="Enms" instance=ExtResource( 5 )]
+position = Vector2( 845, 979 )
+collision_layer = 2
+collision_mask = 13
 
-[node name="Enemy3" type="KinematicBody2D" parent="PossibleLevels/lvl6" groups=["Monster"]]
-position = Vector2( 11747, 376 )
+[node name="Enemy5" parent="Enms" instance=ExtResource( 5 )]
+position = Vector2( 1506, 833 )
+collision_layer = 2
+collision_mask = 13
+type = "Tank"
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/lvl6/Enemy3"]
-shape = SubResource( 3 )
+[node name="Enemy6" parent="Enms" instance=ExtResource( 5 )]
+position = Vector2( 1259, 878 )
+collision_layer = 2
+collision_mask = 13
+type = "Small"
 
-[node name="Sprite" type="Sprite" parent="PossibleLevels/lvl6/Enemy3"]
-modulate = Color( 1, 0, 0, 1 )
-texture = ExtResource( 1 )
+[node name="Enemy3" parent="Enms" instance=ExtResource( 5 )]
+position = Vector2( 1748, 749 )
+collision_layer = 2
+collision_mask = 13
+type = "Chaser"
 
-[node name="Enemy4" type="KinematicBody2D" parent="PossibleLevels/lvl6" groups=["Monster"]]
-position = Vector2( 10134, 989 )
+[node name="Enemy4" parent="Enms" instance=ExtResource( 5 )]
+position = Vector2( 1630, 936 )
+collision_layer = 2
+collision_mask = 13
+type = "Chaser"
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/lvl6/Enemy4"]
-shape = SubResource( 3 )
+[node name="Position2D" type="Position2D" parent="." groups=["Middle"]]
+script = ExtResource( 6 )
 
-[node name="Sprite" type="Sprite" parent="PossibleLevels/lvl6/Enemy4"]
-modulate = Color( 1, 0, 0, 1 )
-texture = ExtResource( 1 )
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource( 8 )
+autoplay = true
 
-[node name="Enemy10" type="KinematicBody2D" parent="PossibleLevels/lvl6" groups=["Monster"]]
-position = Vector2( 11698, 957 )
+[node name="Sprite" type="Sprite" parent="."]
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/lvl6/Enemy10"]
-shape = SubResource( 3 )
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
 
-[node name="Sprite" type="Sprite" parent="PossibleLevels/lvl6/Enemy10"]
-modulate = Color( 1, 0, 0, 1 )
-texture = ExtResource( 1 )
-
-[node name="Enemy11" type="KinematicBody2D" parent="PossibleLevels/lvl6" groups=["Monster"]]
-position = Vector2( 11086, 210 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/lvl6/Enemy11"]
-shape = SubResource( 3 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/lvl6/Enemy11"]
-modulate = Color( 1, 0, 0, 1 )
-texture = ExtResource( 1 )
-
-[node name="Enemy12" type="KinematicBody2D" parent="PossibleLevels/lvl6" groups=["Monster"]]
-position = Vector2( 10056, 170 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/lvl6/Enemy12"]
-shape = SubResource( 3 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/lvl6/Enemy12"]
-modulate = Color( 1, 0, 0, 1 )
-texture = ExtResource( 1 )
-
-[node name="Enemy13" type="KinematicBody2D" parent="PossibleLevels/lvl6" groups=["Monster"]]
-position = Vector2( 10648, 601 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/lvl6/Enemy13"]
-shape = SubResource( 3 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/lvl6/Enemy13"]
-modulate = Color( 1, 0, 0, 1 )
-texture = ExtResource( 1 )
-
-[node name="lvl1" type="Node2D" parent="PossibleLevels"]
-
-[node name="StaticBody2D4" type="StaticBody2D" parent="PossibleLevels/lvl1" groups=["Solid"]]
-position = Vector2( 567, 610 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PossibleLevels/lvl1/StaticBody2D4"]
-position = Vector2( 469, 14 )
-shape = SubResource( 1 )
-
-[node name="Sprite" type="Sprite" parent="PossibleLevels/lvl1/StaticBody2D4"]
-position = Vector2( 470, 13.5 )
-scale = Vector2( 15.6875, 0.578125 )
-texture = ExtResource( 1 )
+[node name="Shop" parent="." instance=ExtResource( 11 )]
+position = Vector2( 1024, 512 )

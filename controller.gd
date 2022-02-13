@@ -3,12 +3,9 @@ extends Node2D
 
 # Declare member variables here. Examples:
 var movespeed = 600;
-var grav = 20;
 
-var jump = 600;
 # var b = "text"
 
-var grounded = false;
 #var onwall = false;
 var hasball = false;
 
@@ -26,7 +23,6 @@ var last_carrier = null
 var slomo = 0.2
 var timescale  = 1
 
-var bvy = 0
 
 var colors = [Color.blue, Color.green]
 
@@ -35,11 +31,8 @@ var trigger_time_change = false
 # onready var Player = $Player;
 onready var Players = [$Player0, $Player1]
 
-var groundeds = [false, false]
-var jumps = [0,0]
 var aims = [Vector2(1,0),Vector2(1,0)]
 var vels = [Vector2(), Vector2()]
-
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -58,7 +51,7 @@ func aim_for_pl(idx):
 
 func framefreeze(dur):
 	var last = Engine.time_scale
-	Engine.time_scale = 0.05
+	Engine.time_scale = 0.03
 	yield(get_tree().create_timer(dur*0.05),"timeout")
 	Engine.time_scale = last
 
@@ -74,8 +67,10 @@ func ball_collision(delta):
 		var col = collision.collider
 		if col.is_in_group("Monster"):
 			if ball_speed >= 4:
+				ball_speed -= 4
 				col.queue_free()
 			else:
+				restart()
 				col.push(bomb_vel * 300)
 				bomb_vel = bomb_vel.bounce(collision.normal).normalized()
 				ball_speed = max(0,ball_speed-1)
@@ -93,8 +88,11 @@ func move_player(i):
 	if aim != Vector2():
 		aims[i] = aim.normalized()
 	
-	Player.get_node("aim").position = aims[i] * 20
-
+	# Player.get_node("aim").position = aims[i] * 20
+	
+	Player.rotation = atan2(aims[i].y, aims[i].x) - PI/2
+	
+	
 	if Engine.time_scale == 1:
 		movevec = velocity * movespeed
 	else:
@@ -104,7 +102,8 @@ func move_player(i):
 	if Input.is_action_just_pressed("shoot_" + str(i)):
 		var bods = Player.get_node("aim/AimArea").get_overlapping_bodies()
 		if Player != last_carrier and len(bods) == 2:
-			framefreeze(0.5)
+			Engine.time_scale = 1
+			framefreeze(0.2*(1+ball_speed/2))
 			ball_speed += 1
 			bomb_vel = aims[i]
 			last_carrier = Player
@@ -119,6 +118,10 @@ func move_player(i):
 			var dir = (-c.position + Player.position).normalized()
 			vels[i] = vels[i].linear_interpolate(dir * 1000, 0.9)
 
+
+func restart():
+	get_tree().reload_current_scene()
+	
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
@@ -147,14 +150,13 @@ func _process(delta):
 	#if Input.is_action_pressed("ui_left"):
 	#	movevec.x -= movespeed
 	
-	var PlayerToHit = (get_player_index(last_carrier) + 1) % 2	
+	var PlayerToHit = Players[(get_player_index(last_carrier) + 1) % 2]
 	
-	if trigger_time_change:
-		if PlayerToHit.position.distance_to(Bomb.position) < 200:
-			Engine.time_scale = slomo
-		elif Engine.time_scale == slomo:
-			Engine.time_scale = 1
-		
+	if PlayerToHit.position.distance_to(Bomb.position) < 200:
+		Engine.time_scale = slomo
+	elif abs(Engine.time_scale - slomo) <= 0.1:
+		Engine.time_scale = 1
+	
 
 	#Engine.time_scale = 1
 	for i in range(2):
